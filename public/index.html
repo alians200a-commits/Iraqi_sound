@@ -49,6 +49,27 @@
         <p class="terms">حد أمان 4500 حرف بالمقطع. بدون حساب أو رصيد داخل التطبيق؛ الخدمة الخارجية قد تفرض حدوداً. يتم إرسال النص إلى خدمة Microsoft.</p>
       </aside>
     </main>
+    <section class="panel habibi-panel" id="habibi-panel" aria-labelledby="habibi-title">
+  <div class="step">03 / نموذج عراقي مستقل</div>
+  <h2 id="habibi-title">Habibi-TTS — السكربت الطويل</h2>
+  <p class="habibi-description">النص من مربع الكتابة بالأعلى. قسّمه إلى مقاطع عراقية قصيرة، ولّد الصوت على خادم Habibi، واسمع كل جزء وأعد توليده إذا ما عجبك.</p>
+  <p id="habibi-state" class="connection error">● جارِ فحص خادم Habibi</p>
+  <div class="habibi-actions">
+    <button class="generate" id="habibi-split" type="button">تقسيم السكربت تلقائياً</button>
+    <button class="generate" id="habibi-generate" type="button" disabled>توليد المقاطع العراقية</button>
+  </div>
+  <div class="habibi-list-head"><strong>المقاطع الجاهزة</strong><span id="habibi-total">0 مقطع</span></div>
+  <div id="habibi-parts" class="habibi-parts"></div>
+  <button class="generate" id="habibi-merge" type="button" disabled>دمج المقاطع وتحميل WAV</button>
+  <p class="terms">الدمج يصير على موبايلك بصيغة WAV حتى ما نخسر جودة الصوت؛ التوليد يتطلب خادم Python مستقل وأوزان Habibi الأصلية.</p>
+  <p id="habibi-msg" role="status" aria-live="polite"></p>
+  <section id="habibi-result" hidden>
+    <h3>التسجيل العراقي الكامل <span id="habibi-size"></span></h3>
+    <audio id="habibi-player" controls preload="metadata"></audio>
+    <a id="habibi-download" class="download">↓ تنزيل الصوت العراقي WAV</a>
+  </section>
+</section>
+
     <section class="panel result" id="result" hidden aria-live="polite">
       <div class="result-heading"><div><div class="step">03 / الاستماع والتحميل</div><h2>الصوت صار جاهز</h2></div><span class="format" id="format">MP3</span></div>
       <audio id="player" controls preload="metadata"></audio>
@@ -59,5 +80,6 @@
     <footer>صَوْتَك <span>•</span> نسخة ويب سحابية <span>•</span> تدعم أندرويد والحاسبة <span>•</span> مشروع غير تابع لمايكروسوفت</footer>
   </div>
   <script src="/app.js"></script>
+  <script type="module" src="/habibi.js"></script>
 </body>
 </html>
