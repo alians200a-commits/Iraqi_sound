@@ -13,6 +13,18 @@
   let audioUrl;
   let busy = false;
   let configured = false;
+  // Embedded previews may block window.confirm() without showing a dialog.
+  // Confirm with a second explicit click inside the app instead.
+  let pendingConfirmation = null;
+  const regularGenerateLabel = go.textContent;
+  function resetConfirmation() {
+    pendingConfirmation = null;
+    if (!busy) go.textContent = regularGenerateLabel;
+  }
+  for (const field of [$('script'), voices, passcode, $('sawtak-enhance')]) {
+    field.addEventListener('input', resetConfirmation);
+    field.addEventListener('change', resetConfirmation);
+  }
   // Keep buttons clickable so users see a real explanation instead of silence.
   load.disabled = false;
   go.disabled = false;
@@ -56,6 +68,7 @@
     try {
       load.disabled = true;
       if (!await check()) return;
+      resetConfirmation();
       message('جارِ جلب الأصوات العراقية من Sawtak Arabi...');
       const response = await fetch('/api/sawtak/voices', {headers: auth(), cache:'no-store'});
       const data = await expectJson(response);
@@ -80,9 +93,20 @@
     if (!text) return message('اكتب السكربت في خانة الكتابة الرئيسية أولاً.', true);
     if (text.length > maxChars) return message(`الحد لحماية الرصيد ${maxChars} حرف. جرّب نصاً أقصر.`, true);
     if (!voices.value) return message('حمّل الأصوات واختار صوتاً أولاً.', true);
-    if (!window.confirm(`هذا الطلب قد يخصم من رصيد Sawtak Arabi. هل تريد توليد ${text.length} حرفاً الآن؟`)) return;
+    const signature = JSON.stringify({
+      text, voice: voices.value, passcode: passcode.value.trim(),
+      enhance: $('sawtak-enhance').checked
+    });
+    if (!pendingConfirmation || pendingConfirmation.signature !== signature || Date.now() > pendingConfirmation.expires) {
+      pendingConfirmation = { signature, expires: Date.now() + 120000 };
+      go.textContent = 'تأكيد التوليد واستهلاك الرصيد';
+      message(`جاهز لتوليد ${text.length} حرفاً بالصوت المختار. اضغط الزر مرة ثانية للتأكيد؛ قد يُخصم من رصيدك. ما انرسل أي طلب صوت لحد الآن.`);
+      return;
+    }
+    pendingConfirmation = null;
     busy = true; go.disabled = true;
-    message('جارِ توليد الملف والتحقق من اكتماله...');
+    go.textContent = 'جارِ توليد التسجيل...';
+    message('انرسل طلب التوليد. جارِ انتظار ملف WAV والتحقق من اكتماله. لا تعيد إرسال الطلب حتى نعرف النتيجة.');
     result.hidden = true;
     if (audioUrl) { URL.revokeObjectURL(audioUrl); audioUrl = null; }
     try {
@@ -109,7 +133,7 @@
       message(`✅ تم توليد WAV كامل (${(blob.size / 1048576).toFixed(2)} MB). اسمعه قبل التحميل.`);
       result.scrollIntoView({ behavior:'smooth', block:'nearest' });
     } catch (e) { message(e.message || String(e), true); }
-    finally { busy = false; go.disabled = false; }
+    finally { busy = false; go.disabled = false; go.textContent = regularGenerateLabel; }
   });
   window.addEventListener('pagehide', () => {if(audioUrl) URL.revokeObjectURL(audioUrl);});
   check();
