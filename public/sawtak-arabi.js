@@ -12,6 +12,10 @@
   let maxChars = 900;
   let audioUrl;
   let busy = false;
+  let configured = false;
+  // Keep buttons clickable so users see a real explanation instead of silence.
+  load.disabled = false;
+  go.disabled = false;
   function message(s, bad = false) {
     info.textContent = s;
     info.style.color = bad ? '#ffb6b9' : '#90e2cb';
@@ -31,23 +35,27 @@
       const r = await fetch('/api/sawtak/status', { cache: 'no-store' });
       const json = await expectJson(r);
       maxChars = json.maxChars || 900;
-      if (!json.configured) {
-        status.textContent = 'غير مفعّل: يحتاج إعداد المفتاح على الخادم';
+      configured = json.configured === true;
+      if (!configured) {
+        status.textContent = 'غير مفعّل: الخادم ما قرأ كل الأسرار المطلوبة';
         status.style.color = '#ffd59b';
-        message('الربط موجود بالكود، لكن لازم تضيف مفتاح الخدمة ورمز الدخول داخل إعدادات الخادم.', true);
+        message(json.detail || 'تحقق من SAWTAK_API_KEY ومن رمز دخول 12 حرفاً أو أكثر، ثم أعد تشغيل الخادم.', true);
       } else {
-        status.textContent = 'متصل — أدخل رمز الدخول وجمّع الأصوات';
+        status.textContent = 'الخادم مهيأ — اضغط جلب الأصوات';
         status.style.color = '#90e2cb';
-        load.disabled = false;
       }
-    } catch {
+      return configured;
+    } catch (error) {
+      configured = false;
       status.textContent = 'الخادم غير متصل';
-      message('افتح رابط التطبيق المشغّل على الخادم، مو ملف HTML وحده.', true);
+      message('الخادم لا يرجع حالة Sawtak الصحيحة. افتح نسخة الخادم المحدثة وأعد نشر التطبيق. ' + String(error.message || ''), true);
+      return false;
     }
   }
   load.addEventListener('click', async () => {
     try {
       load.disabled = true;
+      if (!await check()) return;
       message('جارِ جلب الأصوات العراقية من Sawtak Arabi...');
       const response = await fetch('/api/sawtak/voices', {headers: auth(), cache:'no-store'});
       const data = await expectJson(response);
@@ -67,6 +75,7 @@
   });
   go.addEventListener('click', async () => {
     if (busy) return;
+    if (!await check()) return;
     const text = $('script').value.trim();
     if (!text) return message('اكتب السكربت في خانة الكتابة الرئيسية أولاً.', true);
     if (text.length > maxChars) return message(`الحد لحماية الرصيد ${maxChars} حرف. جرّب نصاً أقصر.`, true);
