@@ -1,161 +1,64 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101c2b">
-  <meta name="description" content="استوديو تعليق صوتي باللهجة العراقية يدعم النصوص الطويلة - صوتك">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1420">
+  <meta name="description" content="صَوْتَك — تعليق صوتي باللهجة العراقية ومتابعة الرصيد">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
-  <title>صَوْتَك | التعليق الصوتي العراقي</title>
+  <link rel="icon" href="/icons/icon-192.png">
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/sawtak-arabi.css">
+  <title>صَوْتَك | استوديو الأصوات العراقية</title>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand"><span class="brand-icon">◉</span><div><b>صَوْتَك</b><small>IRAQI VOICE STUDIO</small></div></div>
-      <div id="connection" class="connection">● جارِ الاتصال</div>
-    </header>
-    <section class="hero">
-      <div class="eyebrow">استوديو التعليق الصوتي العراقي <span>الإصدار 4.0 • دعم المقالات والنصوص الطويلة</span></div>
-      <h1>من السكربت... <em>للصوت العراقي.</em></h1>
-      <p>بدون برامج: اكتب أو الصق نصك باللهجة العراقية مهما كان طوله، اختار باسل أو رنا، اضبط النبرة وسرعة القراءة، وسيقوم المحرك بتقسيم ودمج المقاطع تلقائياً إلى ملف MP3 كامل متصل.</p>
-      <div class="hero-stats">
-        <span>◈ باسل ورنا (أصوات عراقية أصيلة)</span>
-        <span>◈ يدعم حتى 35,000 حرف (مقالات وقصص كاملة)</span>
-        <span>◈ تقسيم ذكي ودمج MP3 تلقائي</span>
-        <span>◈ تحميل فوري</span>
-      </div>
-    </section>
-    <main class="layout">
-      <section class="panel editor">
-        <div class="panel-top">
-          <div><div class="step">01 / الكتابة</div><h2>السكريبت أو المقال</h2></div>
-          <div class="example-btns">
-            <button class="quiet" id="example" type="button">جرّب سكربت قصير</button>
-            <button class="quiet highlight-action" id="example-long" type="button">📜 جرّب مقالاً طويلاً</button>
-          </div>
-        </div>
-        <label class="sr-only" for="script">نص التعليق الصوتي</label>
-        <textarea id="script" placeholder="اكتب أو الصق نصك العراقي هنا (مقال كامل، قصة، سكريبت يوتيوب، بودكاست، أو درس تعليمي)..." spellcheck="false"></textarea>
-        <div class="editor-footer">
-          <span id="counter">0 حرف</span>
-          <span class="editor-actions">
-            <button id="copy" class="quiet" type="button">نسخ</button>
-            <button id="clear" class="quiet" type="button">مسح</button>
-          </span>
-        </div>
-        <div class="tip"><span>✳</span> <b>ميزة النصوص الطويلة:</b> يمكنك لصق مقالات كاملة وقصص طويلة حتى 35,000 حرف. يقوم النظام بتقسيم الكلام ذكياً عند علامات الترقيم والجمل، وتوليد المقاطع ودمجها بسلاسة في ملف صوتي واحد متصل دون أي انقطاع.</div>
-      </section>
-      <aside class="panel settings">
-        <div class="step">02 / الصوت</div><h2>إعدادات التسجيل</h2>
-        <div class="engine-note" id="engine-note">المحرك: أصوات باسل ورنا العراقية مدمجة سحابياً وتدعم النصوص والمقالات الطويلة مع دمج المقاطع تلقائياً.</div>
-        <label>اختار الصوت</label>
-        <div class="voice-grid" role="group" aria-label="نوع الصوت">
-          <button class="voice-option active" data-voice="ar-IQ-BasselNeural" aria-pressed="true" type="button">
-            <span class="avatar">♂</span><strong>باسل</strong><small>صوت رجالي عراقي</small>
-          </button>
-          <button class="voice-option" data-voice="ar-IQ-RanaNeural" aria-pressed="false" type="button">
-            <span class="avatar">♀</span><strong>رنا</strong><small>صوت نسائي عراقي</small>
-          </button>
-          <button class="voice-option voice-habibi" data-voice="habibi-irq" aria-pressed="false" type="button" id="voice-habibi">
-            <span class="avatar">⚡</span><strong>حبيبي IRQ</strong><small id="habibi-status-text">نموذج Python (معلق)</small>
-          </button>
-        </div>
-        <div class="preset-group">
-          <label>أسلوب القراءة للنصوص الطويلة:</label>
-          <div class="preset-buttons">
-            <button type="button" class="preset-btn active" data-speed="1.0" data-pitch="0">🗣️ طبيعي متوازن</button>
-            <button type="button" class="preset-btn" data-speed="0.9" data-pitch="-5">🎙️ وثائقي ورصين</button>
-            <button type="button" class="preset-btn" data-speed="0.85" data-pitch="0">📚 شرح تعليمي</button>
-            <button type="button" class="preset-btn" data-speed="1.15" data-pitch="5">⚡ محتوى سريع</button>
-          </div>
-        </div>
-        <div class="range-head"><label for="speed">سرعة الكلام</label><output id="speed-value">1.00×</output></div>
-        <input class="range" id="speed" type="range" min="0.7" max="1.3" step="0.05" value="1">
-        <div class="range-labels"><span>بطيء</span><span>طبيعي</span><span>سريع</span></div>
-        <div class="range-head"><label for="pitch">درجة النبرة</label><output id="pitch-value">0 Hz</output></div>
-        <input class="range" id="pitch" type="range" min="-30" max="30" step="5" value="0">
-        <div class="range-labels"><span>منخفضة</span><span>طبيعية</span><span>مرتفعة</span></div>
-        <button id="generate" class="generate" type="button"><span>✦</span><span id="generate-label">توليد التعليق الصوتي</span></button>
-        <p class="terms">يدعم حتى 35,000 حرف للمقطع الواحد. خيار باسل ورنا العراقي يدعم التوليد الفوري للنصوص الطويلة مع دمج المقاطع تلقائياً.</p>
-      </aside>
-    </main>
-    <section class="panel habibi-panel" id="habibi-panel" aria-labelledby="habibi-title">
-  <div class="step">03 / نموذج عراقي مستقل</div>
-  <h2 id="habibi-title">Habibi-TTS — السكربت الطويل</h2>
-  <p class="habibi-description">النص من مربع الكتابة بالأعلى. قسّمه إلى مقاطع عراقية قصيرة، ولّد الصوت على خادم Habibi، واسمع كل جزء وأعد توليده إذا ما عجبك.</p>
-  <p id="habibi-state" class="connection error">● جارِ فحص خادم Habibi</p>
-  <div class="habibi-actions">
-    <button class="generate" id="habibi-split" type="button">تقسيم السكربت تلقائياً</button>
-    <button class="generate" id="habibi-generate" type="button" disabled>توليد المقاطع العراقية</button>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand"><div class="symbol" aria-hidden="true">◉</div><div><strong>صَوْتَك</strong><small>IRAQI VOICE STUDIO</small></div></div>
+    <span class="version">الإصدار 6</span>
+  </header>
+  <div class="heading">
+    <span class="eyebrow">استوديو التعليق الصوتي العراقي</span>
+    <h1>من كلامك... <em>للصوت العراقي.</em></h1>
+    <p>اختار من الأصوات العراقية الجاهزة، حدّد سرعة الإلقاء، وراقب رصيدك الحقيقي من داخل التطبيق.</p>
   </div>
-  <div class="habibi-list-head"><strong>المقاطع الجاهزة</strong><span id="habibi-total">0 مقطع</span></div>
-  <div id="habibi-parts" class="habibi-parts"></div>
-  <button class="generate" id="habibi-merge" type="button" disabled>دمج المقاطع وتحميل WAV</button>
-  <p class="terms">الدمج يصير على موبايلك بصيغة WAV حتى ما نخسر جودة الصوت؛ التوليد يتطلب خادم Python مستقل وأوزان Habibi الأصلية.</p>
-  <p id="habibi-msg" role="status" aria-live="polite"></p>
-  <section id="habibi-result" hidden>
-    <h3>التسجيل العراقي الكامل <span id="habibi-size"></span></h3>
-    <audio id="habibi-player" controls preload="metadata"></audio>
-    <a id="habibi-download" class="download">↓ تنزيل الصوت العراقي WAV</a>
+  <section class="panel editor" aria-labelledby="editor-head">
+    <div class="section-title"><div><span class="step">01 / النص</span><h2 id="editor-head">السكريبت</h2></div><button id="example" class="outline" type="button">تجربة قصيرة</button></div>
+    <label class="sr-only" for="script">اكتب نص التعليق الصوتي</label>
+    <textarea id="script" placeholder="هلا والله شباب، شلونكم؟ اليوم عدنا موضوع كلش مهم..." spellcheck="false"></textarea>
+    <div class="editor-bottom"><span id="counter">0 حرف</span><span id="estimate" aria-live="polite">الكلفة التقديرية: $0</span><button id="clear" class="text-button" type="button">مسح النص</button></div>
   </section>
-</section>
-
-    <section class="panel sawtak-panel" aria-labelledby="sawtak-heading">
-      <div class="step">04 / أصوات عراقية من Sawtak Arabi</div>
-      <h2 id="sawtak-heading">مكتبة أصوات عراقية جاهزة</h2>
-      <p class="sawtak-desc">استخدم النص الموجود في مربع الكتابة بالأعلى. اختار صوتاً عراقياً من مكتبة Sawtak Arabi، ثم جرّبه واحفظه WAV على الموبايل. هذا المحرك يستخدم رصيد حسابك وقد يخصم عن كل تجربة.</p>
-      <p id="sawtak-status" role="status">جارِ فحص الاتصال...</p>
-      <div class="sawtak-grid">
-        <div>
-          <label for="sawtak-passcode">رمز دخول تطبيق صَوْتَك (مو مفتاح API)</label>
-          <input id="sawtak-passcode" type="password" autocomplete="off" placeholder="الرمز اللي حددته على خادمك">
-        </div>
-        <div>
-          <label for="sawtak-voices">اختار الصوت العراقي</label>
-          <select id="sawtak-voices" disabled><option value="">حمّل الأصوات أولاً</option></select>
-        </div>
-      </div>
-      <label style="display:block;margin-top:14px;color:#c4d8d4;font-size:13px"><input id="sawtak-enhance" type="checkbox"> تحسين النطق آلياً (اختياري؛ قد يغيّر لهجة بعض الكلمات)</label>
-      <div class="sawtak-actions">
-        <button id="sawtak-load" disabled type="button">جلب الأصوات العراقية</button>
-        <button id="sawtak-generate" disabled type="button">توليد التسجيل العراقي WAV</button>
-      </div>
-      <p id="sawtak-notice" role="status" aria-live="polite"></p>
-      <div id="sawtak-result" hidden>
-        <audio id="sawtak-player" controls preload="metadata"></audio>
-        <a id="sawtak-download" class="download" href="#">↓ تنزيل WAV</a>
-      </div>
-      <p class="sawtak-hint">حفاظاً على رصيدك، كل توليد يحتاج تأكيداً ولا يعاد تلقائياً عند انقطاع الشبكة. مفتاح الخدمة يبقى في أسرار الخادم ولا يدخل في هذه الصفحة.</p>
-    </section>
-
-    <section class="panel result" id="result" hidden aria-live="polite">
-      <div class="result-heading"><div><div class="step">03 / الاستماع والتحميل</div><h2>الصوت صار جاهز</h2></div><span class="format" id="format">MP3</span></div>
-      <audio id="player" controls preload="metadata"></audio>
-      <div class="player-extras">
-        <div class="player-skips">
-          <button type="button" class="player-btn" id="skip-back" title="رجوع 10 ثوانٍ">↺ 10 ثوانٍ</button>
-          <button type="button" class="player-btn" id="skip-forward" title="تقديم 10 ثوانٍ">10 ثوانٍ ↻</button>
-        </div>
-        <div class="speed-selector">
-          <span>سرعة الاستماع:</span>
-          <button type="button" class="speed-btn active" data-rate="1">1×</button>
-          <button type="button" class="speed-btn" data-rate="1.25">1.25×</button>
-          <button type="button" class="speed-btn" data-rate="1.5">1.5×</button>
-          <button type="button" class="speed-btn" data-rate="2">2×</button>
-        </div>
-      </div>
-      <a id="download" href="#" class="download">↓ تنزيل التسجيل MP3</a>
-      <p class="result-hint">الملف ينزل بصيغة MP3 مباشرة لجهازك ومناسب للاستخدام في المونتاج والفيديو أو البودكاست.</p>
-    </section>
-    <p id="message" role="alert" hidden></p>
-    <footer>صَوْتَك <span>•</span> استوديو التعليق الصوتي العراقي <span>•</span> يدعم النصوص والمقالات الطويلة</footer>
-  </div>
-  <script src="/app.js"></script>
-  <script type="module" src="/habibi.js"></script>
-  <script defer src="/sawtak-arabi.js"></script>
-</body>
-</html>
+  <section class="panel" aria-labelledby="settings-head">
+    <div class="section-title"><div><span class="step">02 / الإعدادات</span><h2 id="settings-head">الصوت والإلقاء</h2></div><span id="server-state" role="status" class="pill">جارِ فحص الخادم</span></div>
+    <label for="passcode">رمز دخول التطبيق (مو مفتاح الخدمة)</label>
+    <input id="passcode" type="password" autocomplete="off" placeholder="اكتب رمز الدخول اللي حفظته في Secrets">
+    <div class="rowfield"><label for="voice">الصوت العراقي</label><button id="refresh-voices" class="outline" type="button">جلب الأصوات العراقية</button></div>
+    <select id="voice"><option value="">اضغط جلب الأصوات أولاً</option></select>
+    <div class="speedhead"><label for="speed">سرعة التعليق الصوتي</label><output id="speed-label" for="speed">0.90×</output></div>
+    <input id="speed" type="range" min="0.75" max="1" value="0.90" step="0.05">
+    <div class="rangecaps"><span>أبطأ</span><span>طبيعي 1×</span></div>
+    <p class="hint">التبطيء يتم بعد توليد الصوت، من دون طلب جديد مدفوع، مع محاولة الحفاظ على النبرة الأصلية. إذا لم يتوفر معالج الصوت في الاستضافة، ننبّهك قبل التحميل.</p>
+    <label class="checkline"><input id="enhance" type="checkbox"> تحسين النطق آلياً <span>(اختياري وقد يؤثر على اللهجة)</span></label>
+    <button class="primary" id="generate" type="button">توليد التسجيل العراقي WAV</button>
+    <p id="notice" role="status" aria-live="polite" class="message" hidden></p>
+  </section>
+  <section class="panel finance" aria-labelledby="finance-head">
+    <div class="section-title"><div><span class="step">03 / الحساب</span><h2 id="finance-head">الرصيد والاستهلاك</h2></div><button id="refresh-balance" type="button" class="outline">تحديث الرصيد</button></div>
+    <div class="metrics">
+      <div class="metric primarymetric"><span>الرصيد المتبقي</span><strong id="balance">—</strong><small>دولار أمريكي — القيمة الرسمية للحساب</small></div>
+      <div class="metric"><span>المستهلك آخر 30 يوماً</span><strong id="used-month">—</strong><small id="used-month-chars">— حرف</small></div>
+      <div class="metric"><span>المستهلك خلال 730 يوماً</span><strong id="used-total">—</strong><small id="used-total-chars">— حرف</small></div>
+      <div class="metric"><span>الحروف المتبقية تقريبياً</span><strong id="remaining">—</strong><small>حسب سعر 0.05 دولار لكل 1000 حرف</small></div>
+    </div>
+    <p id="balance-info" class="hint" aria-live="polite">اضغط «تحديث الرصيد» بعد كتابة رمز دخول التطبيق.</p>
+    <p class="hint">بيانات الاستخدام اليومية قد تتأخر حتى ساعة. إجمالي 730 يوماً مو بالضرورة إجمالي الحساب منذ إنشائه، والتقدير يتغيّر حسب الأسعار الفعلية.</p>
+  </section>
+  <section id="result" class="panel" hidden aria-labelledby="result-head">
+    <div class="section-title"><div><span class="step">04 / الناتج</span><h2 id="result-head">التسجيل جاهز</h2></div><span id="format" class="pill">WAV</span></div>
+    <audio controls preload="metadata" id="player"></audio>
+    <p id="speed-info" class="hint"></p>
+    <a id="download" class="primary download" href="#" download="sawtak_iraqi.wav">تنزيل التسجيل WAV</a>
+  </section>
+  <footer>صَوْتَك <span>•</span> أصوات عراقية من Sawtak Arabi <span>•</span> متوافق مع الموبايل</footer>
+</div>
+<script src="/app.js" defer></script>
+</body></html>
