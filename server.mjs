@@ -5,6 +5,7 @@
  * if it must be private. Basic limits here are not a substitute for auth.
  */
 import http from 'node:http';
+import {handleHabibi} from './habibi_gateway.mjs';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -26,6 +27,8 @@ const VOICES = Object.freeze({
 const FILES = new Map([
   ['/', ['public/index.html', 'text/html; charset=utf-8']],
   ['/app.js', ['public/app.js', 'text/javascript; charset=utf-8']],
+  ['/habibi.js', ['public/habibi.js', 'text/javascript; charset=utf-8']],
+  ['/chunker.mjs', ['public/chunker.mjs', 'text/javascript; charset=utf-8']],
   ['/style.css', ['public/style.css', 'text/css; charset=utf-8']],
   ['/manifest.webmanifest', ['public/manifest.webmanifest', 'application/manifest+json']],
   ['/icons/icon-192.png', ['public/icons/icon-192.png', 'image/png']],
@@ -185,6 +188,10 @@ async function generate(req, res) {
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url || '/', 'http://localhost').pathname;
+    if ((req.method === 'GET' && pathname === '/api/habibi/status') || (req.method === 'POST' && pathname === '/api/habibi/generate')) {
+      await handleHabibi(req, res, pathname);
+      return;
+    }
     if ((req.method === 'GET' || req.method === 'HEAD') && FILES.has(pathname)) {
       const [relative, type] = FILES.get(pathname);
       const bytes = await readFile(path.join(ROOT, relative));
