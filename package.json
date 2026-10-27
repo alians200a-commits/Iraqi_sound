@@ -1,0 +1,10 @@
+{
+  "name": "sawtak-iraqi-voice-cloud",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Arabic RTL mobile-first web TTS (ar-IQ Bassel / Rana) with Node.js backend",
+  "engines": {"node": ">=20"},
+  "scripts": {"start": "node server.mjs", "dev": "node server.mjs", "check": "node --check server.mjs && node --check public/app.js"},
+  "dependencies": {"@andresaya/edge-tts": "1.9.1"}
+}
