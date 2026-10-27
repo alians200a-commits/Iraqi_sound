@@ -9,7 +9,13 @@ import { timingSafeEqual, randomUUID } from 'node:crypto';
 const BASE = 'https://api.sawtakarabi.ai/v1';
 const API_KEY = process.env.SAWTAK_API_KEY || '';
 const APP_PASSWORD = process.env.SAWTAK_APP_PASSWORD || '';
-const ENABLED = Boolean(API_KEY && APP_PASSWORD.length >= 12);
+const ENABLED = Boolean(API_KEY.trim() && APP_PASSWORD.length >= 12);
+function setupStatus() {
+  if (!API_KEY.trim()) return 'الخادم ما استلم SAWTAK_API_KEY. احفظ المفتاح في Secrets وأعد تشغيل أو نشر الخادم.';
+  if (!APP_PASSWORD) return 'الخادم ما استلم SAWTAK_APP_PASSWORD. احفظ رمز الدخول في Secrets وأعد تشغيل أو نشر الخادم.';
+  if (APP_PASSWORD.length < 12) return 'رمز دخول التطبيق على الخادم أقل من 12 حرفاً؛ غيّره في Secrets ثم أعد تشغيل أو نشر الخادم.';
+  return 'خادم Sawtak مهيأ. أدخل رمز الدخول واضغط جلب الأصوات قبل التوليد.';
+}
 const MAX_CHARS = Math.min(2000, Math.max(100, Number(process.env.SAWTAK_MAX_CHARS || 900) || 900));
 const MAX_AUDIO_BYTES = 32 * 1024 * 1024;
 let generating = false;
@@ -184,7 +190,11 @@ async function generate(req, res) {
 export async function handleSawtak(req, res, pathname) {
   if (pathname === '/api/sawtak/status' && req.method === 'GET') {
     return json(res, 200, { configured: ENABLED, maxChars: MAX_CHARS, format: 'wav',
-      detail: ENABLED ? 'جاهز للاختبار بعد إدخال رمز دخول التطبيق.' : 'مفتاح الخدمة أو كلمة مرور التطبيق غير مضبوطة على الخادم.' });
+      detail: setupStatus(), diagnostics: {
+        apiKeyPresent: Boolean(API_KEY.trim()),
+        passwordPresent: Boolean(APP_PASSWORD),
+        passwordMeetsMinimum: APP_PASSWORD.length >= 12
+      } });
   }
   if (!['/api/sawtak/voices', '/api/sawtak/generate'].includes(pathname)) return json(res, 404, { error: 'المسار غير موجود.' });
   if (!gate(req, res)) return;
