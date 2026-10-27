@@ -20,10 +20,11 @@ const { generateSecMsGecToken_V2, SEC_MS_GEC_VERSION_V2, TRUSTED_CLIENT_TOKEN, C
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
-const MAX_CHARS = 4500;
+const MAX_CHARS = 35000;
 const VOICES = Object.freeze({
   'ar-IQ-BasselNeural': 'باسل — صوت عراقي رجالي',
-  'ar-IQ-RanaNeural': 'رنا — صوت عراقي نسائي'
+  'ar-IQ-RanaNeural': 'رنا — صوت عراقي نسائي',
+  'habibi-irq': 'حبيبي IRQ — نموذج الذكاء الاصطناعي العراقي'
 });
 const FILES = new Map([
   ['/sawtak-arabi.js', ['public/sawtak-arabi.js', 'text/javascript; charset=utf-8']],
@@ -39,7 +40,7 @@ const FILES = new Map([
 ]);
 const counters = new Map();
 let active = 0;
-const MAX_CONCURRENT = 2;
+const MAX_CONCURRENT = 3;
 
 function sendJson(res, status, obj) {
   const data = Buffer.from(JSON.stringify(obj));
@@ -59,7 +60,7 @@ async function bodyJson(req) {
   const chunks = [];
   for await (const piece of req) {
     count += piece.length;
-    if (count > 24000) { const e = new Error('حجم الطلب كبير.'); e.httpStatus = 413; throw e; }
+    if (count > 350000) { const e = new Error('حجم الطلب كبير جداً.'); e.httpStatus = 413; throw e; }
     chunks.push(piece);
   }
   try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); }
@@ -88,7 +89,51 @@ function escapeXml(unsafe) {
   });
 }
 
-async function synthesizeAudio(text, voice, options = {}) {
+function splitIntoChunks(text, maxChunkLen = 1200) {
+  text = text.trim();
+  if (text.length <= maxChunkLen) return [text];
+
+  const paragraphs = text.split(/\n+/);
+  const chunks = [];
+  let currentChunk = '';
+
+  for (const paragraph of paragraphs) {
+    if (!paragraph.trim()) continue;
+    if ((currentChunk + '\n' + paragraph).length <= maxChunkLen) {
+      currentChunk = currentChunk ? (currentChunk + '\n' + paragraph) : paragraph;
+    } else {
+      const sentences = paragraph.match(/[^.!?؛؟\n]+[.!?؛؟\n]*/gu) || [paragraph];
+      for (const sentence of sentences) {
+        const trimmed = sentence.trim();
+        if (!trimmed) continue;
+        if ((currentChunk + ' ' + trimmed).length <= maxChunkLen) {
+          currentChunk = currentChunk ? (currentChunk + ' ' + trimmed) : trimmed;
+        } else {
+          if (currentChunk) chunks.push(currentChunk);
+          if (trimmed.length > maxChunkLen) {
+            const words = trimmed.split(/\s+/);
+            let sub = '';
+            for (const w of words) {
+              if ((sub + ' ' + w).length <= maxChunkLen) {
+                sub = sub ? (sub + ' ' + w) : w;
+              } else {
+                if (sub) chunks.push(sub);
+                sub = w;
+              }
+            }
+            currentChunk = sub;
+          } else {
+            currentChunk = trimmed;
+          }
+        }
+      }
+    }
+  }
+  if (currentChunk) chunks.push(currentChunk);
+  return chunks.filter(c => c.trim().length > 0);
+}
+
+async function synthesizeSingleChunk(text, voice, options = {}) {
   const token = generateSecMsGecToken_V2();
   const connId = crypto.randomUUID().replace(/-/g, '');
   const url = `wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=${TRUSTED_CLIENT_TOKEN}&Sec-MS-GEC=${token}&Sec-MS-GEC-Version=${SEC_MS_GEC_VERSION_V2}&ConnectionId=${connId}`;
@@ -106,8 +151,8 @@ async function synthesizeAudio(text, voice, options = {}) {
     const audioChunks = [];
     const timer = setTimeout(() => {
       ws.terminate();
-      reject(new Error('انتهت مهلة الاتصال بالخدمة الصوتية.'));
-    }, options.timeout || 35000);
+      reject(new Error('انتهت مهلة معالجة المقطع الصوتي.'));
+    }, options.timeout || 45000);
 
     ws.on('open', () => {
       const configMsg = 'Content-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}';
@@ -148,6 +193,27 @@ async function synthesizeAudio(text, voice, options = {}) {
   });
 }
 
+async function synthesizeAudio(text, voice, options = {}) {
+  const chunks = splitIntoChunks(text, 1200);
+  const audioParts = [];
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunkAudio = await synthesizeSingleChunk(chunks[i], voice, options);
+    if (!chunkAudio || chunkAudio.length < 50) {
+      throw new Error(`تعذر معالجة المقطع رقم ${i + 1} من أصل ${chunks.length}.`);
+    }
+    audioParts.push(chunkAudio);
+    if (i < chunks.length - 1) {
+      await new Promise(r => setTimeout(r, 120));
+    }
+  }
+
+  return {
+    buffer: Buffer.concat(audioParts),
+    chunksCount: chunks.length
+  };
+}
+
 async function generate(req, res) {
   const ip = req.socket.remoteAddress || 'unknown';
   if (throttled(ip)) return sendJson(res, 429, {error: 'وصلت حد الحماية المؤقت (8 طلبات بالدقيقة)، جرّب بعد دقيقة.'});
@@ -163,28 +229,87 @@ async function generate(req, res) {
   if (!Number.isFinite(speed) || speed < 0.7 || speed > 1.3 || !Number.isFinite(pitch) || pitch < -30 || pitch > 30) {
     return sendJson(res, 400, {error: 'قيم سرعة ونبرة الصوت خارج النطاق.'});
   }
+
+  // Handle Habibi IRQ (Python-backed AI Voice)
+  if (voice === 'habibi-irq') {
+    const habibiUrl = (process.env.HABIBI_URL || '').trim();
+    const habibiKey = (process.env.HABIBI_API_KEY || '').trim();
+    if (!habibiUrl) {
+      return sendJson(res, 400, {
+        error: 'خيار "حبيبي IRQ" غير مفعّل حالياً: يتطلب ربط خدمة Python عبر إعداد المتغيرين البيئيين HABIBI_URL و HABIBI_API_KEY. يرجى اختيار صوت باسل أو رنا للمتابعة، أو ربط خدمة Python أولاً.'
+      });
+    }
+    active += 1;
+    try {
+      const forwardRes = await fetch(habibiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(habibiKey ? { 'Authorization': `Bearer ${habibiKey}` } : {})
+        },
+        body: JSON.stringify({ text: script, speed, pitch }),
+        signal: AbortSignal.timeout(60000)
+      });
+      if (!forwardRes.ok) {
+        let errDetail = '';
+        try {
+          const json = await forwardRes.json();
+          errDetail = json.error || json.message || JSON.stringify(json);
+        } catch {
+          errDetail = await forwardRes.text().catch(() => '');
+        }
+        return sendJson(res, 502, {
+          error: `فشلت استجابة خدمة Habibi Python (رمز ${forwardRes.status}): ${errDetail || 'خطأ غير معروف في خادم Habibi'}`
+        });
+      }
+      const rawBuffer = Buffer.from(await forwardRes.arrayBuffer());
+      if (rawBuffer.length < 100) {
+        return sendJson(res, 502, {
+          error: 'استجابة خدمة Habibi Python فارغة أو لا تحتوي على صوت صالح.'
+        });
+      }
+      const filename = `sawtak_habibi_${Date.now()}.mp3`;
+      res.writeHead(200, {
+        'Content-Type': forwardRes.headers.get('content-type') || 'audio/mpeg',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
+        'Content-Length': rawBuffer.length
+      });
+      return res.end(rawBuffer);
+    } catch (err) {
+      return sendJson(res, 502, {
+        error: `تعذر الاتصال بخدمة Habibi IRQ (${habibiUrl}): ${err.message}`
+      });
+    } finally {
+      active -= 1;
+    }
+  }
+
   active += 1;
   try {
     const rateN = Math.round((speed - 1) * 100);
     const rate = `${rateN >= 0 ? '+' : ''}${rateN}%`;
     const pitchS = `${pitch >= 0 ? '+' : ''}${Math.round(pitch)}Hz`;
-    const buffer = await synthesizeAudio(script, voice, {
+    const result = await synthesizeAudio(script, voice, {
       rate,
       pitch: pitchS,
       timeout: 50000
     });
-    if (buffer.length < 100) throw new Error('لم يصل ملف صوتي من الخدمة.');
+    const buffer = result.buffer;
+    if (buffer.length < 100) throw new Error('لم يصل ملف صوتي صالح من الخدمة (الحجم أقل من 100 بايت).');
     const filename = `sawtak_${Date.now()}.mp3`;
     res.writeHead(200, {
       'Content-Type': 'audio/mpeg',
       'Content-Disposition': `attachment; filename="${filename}"`,
       'Cache-Control': 'private, no-store',
       'X-Content-Type-Options': 'nosniff',
+      'X-Audio-Chunks': String(result.chunksCount),
       'Content-Length': buffer.length
     });
     res.end(buffer);
   } catch (e) {
-    sendJson(res, 502, {error: `تعذر توليد الصوت من الخدمة الخارجية: ${String(e?.message || e).slice(0, 180)}`});
+    sendJson(res, 502, {error: `تعذر توليد الصوت من الخدمة: ${String(e?.message || e).slice(0, 200)}`});
   } finally { active -= 1; }
 }
 
@@ -215,7 +340,16 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
         return res.end();
       }
-      return sendJson(res, 200, {ok: true, server: 'cloud', voices: VOICES, maxChars: MAX_CHARS});
+      const habibiConfigured = Boolean(process.env.HABIBI_URL && process.env.HABIBI_URL.trim());
+      return sendJson(res, 200, {
+        ok: true,
+        app: 'sawtak',
+        version: '4.0.0',
+        server: 'cloud',
+        habibiConfigured,
+        voices: VOICES,
+        maxChars: MAX_CHARS
+      });
     }
     if (req.method === 'POST' && pathname === '/api/generate') {
       const origin = req.headers.origin;
@@ -236,5 +370,5 @@ const server = http.createServer(async (req, res) => {
     if (!res.headersSent) sendJson(res, e.httpStatus || 500, {error: e.httpStatus ? e.message : 'حدث خطأ داخل الخادم.'});
   }
 });
-server.requestTimeout = 120_000;
+server.requestTimeout = 300_000;
 server.listen(PORT, HOST, () => console.log(`Sawtak Cloud ready on port ${PORT}`));

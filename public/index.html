@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101c2b">
-  <meta name="description" content="استوديو تعليق صوتي باللهجة العراقية - صوتك">
+  <meta name="description" content="استوديو تعليق صوتي باللهجة العراقية يدعم النصوص الطويلة - صوتك">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
@@ -19,26 +19,59 @@
       <div id="connection" class="connection">● جارِ الاتصال</div>
     </header>
     <section class="hero">
-      <div class="eyebrow">تطبيق ويب للموبايل والحاسبة <span>الإصدار 3.0</span></div>
+      <div class="eyebrow">استوديو التعليق الصوتي العراقي <span>الإصدار 4.0 • دعم المقالات والنصوص الطويلة</span></div>
       <h1>من السكربت... <em>للصوت العراقي.</em></h1>
-      <p>بدون تثبيت برامج: اكتب نصك باللهجة العراقية، اختار باسل أو رنا، اضبط النبرة والسرعة، واستمع للملف وحمّله MP3 مباشرة.</p>
-      <div class="hero-stats"><span>◈ صوت رجالي ونسائي</span><span>◈ تحميل MP3</span><span>◈ يشتغل من Chrome</span></div>
+      <p>بدون برامج: اكتب أو الصق نصك باللهجة العراقية مهما كان طوله، اختار باسل أو رنا، اضبط النبرة وسرعة القراءة، وسيقوم المحرك بتقسيم ودمج المقاطع تلقائياً إلى ملف MP3 كامل متصل.</p>
+      <div class="hero-stats">
+        <span>◈ باسل ورنا (أصوات عراقية أصيلة)</span>
+        <span>◈ يدعم حتى 35,000 حرف (مقالات وقصص كاملة)</span>
+        <span>◈ تقسيم ذكي ودمج MP3 تلقائي</span>
+        <span>◈ تحميل فوري</span>
+      </div>
     </section>
     <main class="layout">
       <section class="panel editor">
-        <div class="panel-top"><div><div class="step">01 / الكتابة</div><h2>السكريبت مالك</h2></div><button class="quiet" id="example" type="button">جرّب سكربت عراقي</button></div>
+        <div class="panel-top">
+          <div><div class="step">01 / الكتابة</div><h2>السكريبت أو المقال</h2></div>
+          <div class="example-btns">
+            <button class="quiet" id="example" type="button">جرّب سكربت قصير</button>
+            <button class="quiet highlight-action" id="example-long" type="button">📜 جرّب مقالاً طويلاً</button>
+          </div>
+        </div>
         <label class="sr-only" for="script">نص التعليق الصوتي</label>
-        <textarea id="script" placeholder="مثلاً: هلا والله طلاب، شلونكم؟ اليوم عدنا موضوع كلش مهم وراح نشرحه خطوة بخطوة..." spellcheck="false"></textarea>
-        <div class="editor-footer"><span id="counter">0 حرف</span><span class="editor-actions"><button id="copy" class="quiet" type="button">نسخ</button><button id="clear" class="quiet" type="button">مسح</button></span></div>
-        <div class="tip"><span>✳</span> للفظ العراقي: اكتب شلون، هسه، گدام، راح، أكو. ممكن تختلف جودة النطق حسب النص والخدمة.</div>
+        <textarea id="script" placeholder="اكتب أو الصق نصك العراقي هنا (مقال كامل، قصة، سكريبت يوتيوب، بودكاست، أو درس تعليمي)..." spellcheck="false"></textarea>
+        <div class="editor-footer">
+          <span id="counter">0 حرف</span>
+          <span class="editor-actions">
+            <button id="copy" class="quiet" type="button">نسخ</button>
+            <button id="clear" class="quiet" type="button">مسح</button>
+          </span>
+        </div>
+        <div class="tip"><span>✳</span> <b>ميزة النصوص الطويلة:</b> يمكنك لصق مقالات كاملة وقصص طويلة حتى 35,000 حرف. يقوم النظام بتقسيم الكلام ذكياً عند علامات الترقيم والجمل، وتوليد المقاطع ودمجها بسلاسة في ملف صوتي واحد متصل دون أي انقطاع.</div>
       </section>
       <aside class="panel settings">
         <div class="step">02 / الصوت</div><h2>إعدادات التسجيل</h2>
-        <div class="engine-note">المحرك: Edge-TTS باستخدام خدمة Microsoft عبر الإنترنت. لا يحتاج مفتاح API، لكنه ليس محركاً محلياً أو خدمة غير محدودة مضمونة.</div>
+        <div class="engine-note" id="engine-note">المحرك: أصوات باسل ورنا العراقية مدمجة سحابياً وتدعم النصوص والمقالات الطويلة مع دمج المقاطع تلقائياً.</div>
         <label>اختار الصوت</label>
         <div class="voice-grid" role="group" aria-label="نوع الصوت">
-          <button class="voice-option active" data-voice="ar-IQ-BasselNeural" aria-pressed="true" type="button"><span class="avatar">♂</span><strong>باسل</strong><small>صوت رجالي</small></button>
-          <button class="voice-option" data-voice="ar-IQ-RanaNeural" aria-pressed="false" type="button"><span class="avatar">♀</span><strong>رنا</strong><small>صوت نسائي</small></button>
+          <button class="voice-option active" data-voice="ar-IQ-BasselNeural" aria-pressed="true" type="button">
+            <span class="avatar">♂</span><strong>باسل</strong><small>صوت رجالي عراقي</small>
+          </button>
+          <button class="voice-option" data-voice="ar-IQ-RanaNeural" aria-pressed="false" type="button">
+            <span class="avatar">♀</span><strong>رنا</strong><small>صوت نسائي عراقي</small>
+          </button>
+          <button class="voice-option voice-habibi" data-voice="habibi-irq" aria-pressed="false" type="button" id="voice-habibi">
+            <span class="avatar">⚡</span><strong>حبيبي IRQ</strong><small id="habibi-status-text">نموذج Python (معلق)</small>
+          </button>
+        </div>
+        <div class="preset-group">
+          <label>أسلوب القراءة للنصوص الطويلة:</label>
+          <div class="preset-buttons">
+            <button type="button" class="preset-btn active" data-speed="1.0" data-pitch="0">🗣️ طبيعي متوازن</button>
+            <button type="button" class="preset-btn" data-speed="0.9" data-pitch="-5">🎙️ وثائقي ورصين</button>
+            <button type="button" class="preset-btn" data-speed="0.85" data-pitch="0">📚 شرح تعليمي</button>
+            <button type="button" class="preset-btn" data-speed="1.15" data-pitch="5">⚡ محتوى سريع</button>
+          </div>
         </div>
         <div class="range-head"><label for="speed">سرعة الكلام</label><output id="speed-value">1.00×</output></div>
         <input class="range" id="speed" type="range" min="0.7" max="1.3" step="0.05" value="1">
@@ -47,7 +80,7 @@
         <input class="range" id="pitch" type="range" min="-30" max="30" step="5" value="0">
         <div class="range-labels"><span>منخفضة</span><span>طبيعية</span><span>مرتفعة</span></div>
         <button id="generate" class="generate" type="button"><span>✦</span><span id="generate-label">توليد التعليق الصوتي</span></button>
-        <p class="terms">حد أمان 4500 حرف بالمقطع. بدون حساب أو رصيد داخل التطبيق؛ الخدمة الخارجية قد تفرض حدوداً. يتم إرسال النص إلى خدمة Microsoft.</p>
+        <p class="terms">يدعم حتى 35,000 حرف للمقطع الواحد. خيار باسل ورنا العراقي يدعم التوليد الفوري للنصوص الطويلة مع دمج المقاطع تلقائياً.</p>
       </aside>
     </main>
     <section class="panel habibi-panel" id="habibi-panel" aria-labelledby="habibi-title">
@@ -102,11 +135,24 @@
     <section class="panel result" id="result" hidden aria-live="polite">
       <div class="result-heading"><div><div class="step">03 / الاستماع والتحميل</div><h2>الصوت صار جاهز</h2></div><span class="format" id="format">MP3</span></div>
       <audio id="player" controls preload="metadata"></audio>
+      <div class="player-extras">
+        <div class="player-skips">
+          <button type="button" class="player-btn" id="skip-back" title="رجوع 10 ثوانٍ">↺ 10 ثوانٍ</button>
+          <button type="button" class="player-btn" id="skip-forward" title="تقديم 10 ثوانٍ">10 ثوانٍ ↻</button>
+        </div>
+        <div class="speed-selector">
+          <span>سرعة الاستماع:</span>
+          <button type="button" class="speed-btn active" data-rate="1">1×</button>
+          <button type="button" class="speed-btn" data-rate="1.25">1.25×</button>
+          <button type="button" class="speed-btn" data-rate="1.5">1.5×</button>
+          <button type="button" class="speed-btn" data-rate="2">2×</button>
+        </div>
+      </div>
       <a id="download" href="#" class="download">↓ تنزيل التسجيل MP3</a>
-      <p class="result-hint">الملف ينزل عادةً في مجلد Downloads بالموبايل. ما ينحفظ الصوت على الخادم، فحمّله قبل إغلاق الصفحة.</p>
+      <p class="result-hint">الملف ينزل بصيغة MP3 مباشرة لجهازك ومناسب للاستخدام في المونتاج والفيديو أو البودكاست.</p>
     </section>
     <p id="message" role="alert" hidden></p>
-    <footer>صَوْتَك <span>•</span> نسخة ويب سحابية <span>•</span> تدعم أندرويد والحاسبة <span>•</span> مشروع غير تابع لمايكروسوفت</footer>
+    <footer>صَوْتَك <span>•</span> استوديو التعليق الصوتي العراقي <span>•</span> يدعم النصوص والمقالات الطويلة</footer>
   </div>
   <script src="/app.js"></script>
   <script type="module" src="/habibi.js"></script>
