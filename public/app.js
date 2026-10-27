@@ -116,7 +116,7 @@ generate.addEventListener('click',async()=>{
     $('result').scrollIntoView({behavior:'smooth',block:'nearest'});
     void updateBalance();
   }catch(e){show(String(e.message||e),true);}
-  finally{busy=false;generate.disabled=false;generate.textContent='توليد التسجيل العراقي WAV';}
+  finally{busy=false;generate.disabled=false;generate.textContent=pending?'تأكيد التوليد واستهلاك الرصيد':'توليد التسجيل العراقي WAV';}
 });
 window.addEventListener('pagehide',()=>{if(activeURL)URL.revokeObjectURL(activeURL);});
 try{script.value=localStorage.getItem('sawtak-v6-draft')||localStorage.getItem('sawtak.web.v3.text')||'';}catch{}
