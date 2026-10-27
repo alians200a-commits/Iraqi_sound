@@ -1,17 +1,15 @@
 {
-  "name": "sawtak-iraqi-voice-cloud",
-  "version": "4.0.0",
+  "name": "sawtak-iraqi-studio",
+  "version": "6.0.0",
   "private": true,
   "type": "module",
-  "description": "Arabic RTL mobile-first web TTS v4.0.0 (ar-IQ Bassel / Rana + Habibi IRQ) with Node.js backend",
+  "description": "Iraqi voice studio powered only by Sawtak Arabi. Mobile-first Node.js web app.",
   "scripts": {
-    "build": "node --check server.mjs && node --check public/app.js",
     "start": "node server.mjs",
     "dev": "node server.mjs",
-    "check": "node --check server.mjs && node --check public/app.js"
+    "check": "node --check server.mjs && node --check sawtak-arabi.mjs && node --check public/app.js"
   },
-  "dependencies": {
-    "node-edge-tts": "^1.2.12",
-    "ws": "^8.18.0"
+  "engines": {
+    "node": ">=20"
   }
 }
