@@ -1,3 +1,4 @@
+import { handleSawtak } from './sawtak-arabi.mjs';
 /**
  * Sawtak cloud server (for Google AI Studio/Cloud Run or any Node hosting).
  * Server returns MP3 directly without saving audio or text to disk.
@@ -25,6 +26,8 @@ const VOICES = Object.freeze({
   'ar-IQ-RanaNeural': 'رنا — صوت عراقي نسائي'
 });
 const FILES = new Map([
+  ['/sawtak-arabi.js', ['public/sawtak-arabi.js', 'text/javascript; charset=utf-8']],
+  ['/sawtak-arabi.css', ['public/sawtak-arabi.css', 'text/css; charset=utf-8']],
   ['/', ['public/index.html', 'text/html; charset=utf-8']],
   ['/app.js', ['public/app.js', 'text/javascript; charset=utf-8']],
   ['/habibi.js', ['public/habibi.js', 'text/javascript; charset=utf-8']],
@@ -188,6 +191,10 @@ async function generate(req, res) {
 const server = http.createServer(async (req, res) => {
   try {
     const pathname = new URL(req.url || '/', 'http://localhost').pathname;
+    if (pathname.startsWith('/api/sawtak/')) {
+      await handleSawtak(req, res, pathname);
+      return;
+    }
     if ((req.method === 'GET' && pathname === '/api/habibi/status') || (req.method === 'POST' && pathname === '/api/habibi/generate')) {
       await handleHabibi(req, res, pathname);
       return;

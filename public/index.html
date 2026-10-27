@@ -10,6 +10,7 @@
   <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
   <title>صَوْتَك | التعليق الصوتي العراقي</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/sawtak-arabi.css">
 </head>
 <body>
   <div class="shell">
@@ -70,6 +71,34 @@
   </section>
 </section>
 
+    <section class="panel sawtak-panel" aria-labelledby="sawtak-heading">
+      <div class="step">04 / أصوات عراقية من Sawtak Arabi</div>
+      <h2 id="sawtak-heading">مكتبة أصوات عراقية جاهزة</h2>
+      <p class="sawtak-desc">استخدم النص الموجود في مربع الكتابة بالأعلى. اختار صوتاً عراقياً من مكتبة Sawtak Arabi، ثم جرّبه واحفظه WAV على الموبايل. هذا المحرك يستخدم رصيد حسابك وقد يخصم عن كل تجربة.</p>
+      <p id="sawtak-status" role="status">جارِ فحص الاتصال...</p>
+      <div class="sawtak-grid">
+        <div>
+          <label for="sawtak-passcode">رمز دخول تطبيق صَوْتَك (مو مفتاح API)</label>
+          <input id="sawtak-passcode" type="password" autocomplete="off" placeholder="الرمز اللي حددته على خادمك">
+        </div>
+        <div>
+          <label for="sawtak-voices">اختار الصوت العراقي</label>
+          <select id="sawtak-voices" disabled><option value="">حمّل الأصوات أولاً</option></select>
+        </div>
+      </div>
+      <label style="display:block;margin-top:14px;color:#c4d8d4;font-size:13px"><input id="sawtak-enhance" type="checkbox"> تحسين النطق آلياً (اختياري؛ قد يغيّر لهجة بعض الكلمات)</label>
+      <div class="sawtak-actions">
+        <button id="sawtak-load" disabled type="button">جلب الأصوات العراقية</button>
+        <button id="sawtak-generate" disabled type="button">توليد التسجيل العراقي WAV</button>
+      </div>
+      <p id="sawtak-notice" role="status" aria-live="polite"></p>
+      <div id="sawtak-result" hidden>
+        <audio id="sawtak-player" controls preload="metadata"></audio>
+        <a id="sawtak-download" class="download" href="#">↓ تنزيل WAV</a>
+      </div>
+      <p class="sawtak-hint">حفاظاً على رصيدك، كل توليد يحتاج تأكيداً ولا يعاد تلقائياً عند انقطاع الشبكة. مفتاح الخدمة يبقى في أسرار الخادم ولا يدخل في هذه الصفحة.</p>
+    </section>
+
     <section class="panel result" id="result" hidden aria-live="polite">
       <div class="result-heading"><div><div class="step">03 / الاستماع والتحميل</div><h2>الصوت صار جاهز</h2></div><span class="format" id="format">MP3</span></div>
       <audio id="player" controls preload="metadata"></audio>
@@ -81,5 +110,6 @@
   </div>
   <script src="/app.js"></script>
   <script type="module" src="/habibi.js"></script>
+  <script defer src="/sawtak-arabi.js"></script>
 </body>
 </html>
