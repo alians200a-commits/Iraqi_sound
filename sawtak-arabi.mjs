@@ -5,6 +5,7 @@
  * Node.js >= 20; no additional dependencies.
  */
 import { timingSafeEqual, randomUUID } from 'node:crypto';
+import { spawn } from 'node:child_process';
 
 const BASE = 'https://api.sawtakarabi.ai/v1';
 const API_KEY = process.env.SAWTAK_API_KEY || '';
@@ -146,12 +147,115 @@ async function receiveWav(response) {
     throw new Error('الصوت WAV غير مكتمل أو غير صالح.');
   return wav;
 }
+
+const DAY = 86400;
+const PRICE_ESTIMATE_PER_1000 = 0.05; // Informational only, current advertised base TTS rate.
+function parseMoney(s) {
+  const n = Number(s);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+function makePcmWav(pcm) {
+  const b = Buffer.alloc(44);
+  b.write('RIFF', 0, 4, 'ascii');
+  b.writeUInt32LE(pcm.length + 36, 4);
+  b.write('WAVEfmt ', 8, 8, 'ascii');
+  b.writeUInt32LE(16, 16);
+  b.writeUInt16LE(1, 20);
+  b.writeUInt16LE(1, 22);
+  b.writeUInt32LE(24000, 24);
+  b.writeUInt32LE(48000, 28);
+  b.writeUInt16LE(2, 32);
+  b.writeUInt16LE(16, 34);
+  b.write('data', 36, 4, 'ascii');
+  b.writeUInt32LE(pcm.length, 40);
+  return Buffer.concat([b, pcm]);
+}
+// Re-time the already paid-for WAV; atempo preserves the original speaker's pitch.
+// This never calls the paid voice-generation endpoint a second time.
+function stretchWav(wav, speed) {
+  return new Promise((resolve, reject) => {
+    const args = ['-hide_banner','-loglevel','error','-nostdin','-i','pipe:0',
+      '-af', 'atempo=' + speed.toFixed(2), '-ar','24000','-ac','1','-c:a','pcm_s16le','-f','s16le','pipe:1'];
+    const child = spawn(process.env.FFMPEG_PATH || 'ffmpeg', args, {stdio: ['pipe','pipe','pipe']});
+    let bytes=0, stderr='', settled=false;
+    const pieces=[];
+    const timeout=setTimeout(()=>child.kill('SIGKILL'), 120000);
+    child.stdout.on('data', d => {bytes += d.length; if(bytes <= MAX_AUDIO_BYTES) pieces.push(d); else child.kill('SIGKILL');});
+    child.stderr.on('data', d => {stderr += d.toString().slice(0, 250);});
+    child.on('error', e => {if(!settled){settled=true;clearTimeout(timeout);reject(e);}});
+    child.on('close', code => {
+      if(settled) return;
+      settled=true;clearTimeout(timeout);
+      const pcm=Buffer.concat(pieces);
+      if(code !== 0 || pcm.length < 100 || pcm.length % 2 || bytes > MAX_AUDIO_BYTES)
+        return reject(new Error('فشل تعديل السرعة: ' + (stderr.slice(-160) || String(code))));
+      resolve(makePcmWav(pcm));
+    });
+    child.stdin.on('error', ()=>{});
+    child.stdin.end(wav);
+  });
+}
+async function accountSummary(res) {
+  try {
+    const meResp = await upstream(BASE + '/me', {}, 15000);
+    if(!meResp.ok) throw new Error(await vendorError(meResp));
+    const me = await meResp.json();
+    const balanceUsd = parseMoney(me.balance_usd);
+    if(balanceUsd === null) throw new Error('خادم الخدمة ما أرسل balance_usd بالشكل المتوقع.');
+    const end = (Math.floor(Date.now() / (DAY*1000)) + 1) * DAY;
+    const start = end - 730*DAY;
+    const thirty = end - 30*DAY;
+    const today = end - DAY;
+    let spent730=0, spent30=0, spentToday=0, chars730=0, chars30=0, charsToday=0;
+    let usageError = null;
+    try {
+      for(let from=start;from<end;from+=365*DAY){
+        const to=Math.min(end,from+365*DAY);
+        const url = new URL(BASE + '/usage');
+        url.searchParams.set('start_time', String(from));
+        url.searchParams.set('end_time',String(to));
+        url.searchParams.set('limit','366');
+        const r=await upstream(url,{},18000);
+        if(!r.ok) throw new Error(await vendorError(r));
+        const list=await r.json();
+        if(!Array.isArray(list.data)) throw new Error('صيغة سجل الاستخدام غير متوقعة.');
+        for (const row of list.data) {
+          const when=Number(row.start_time), cost=parseMoney(row.cost_usd);
+          const chars=Number(row.tts_characters);
+          if(!Number.isFinite(when) || cost===null || !Number.isFinite(chars)) continue;
+          spent730+=cost;chars730+=chars;
+          if(when>=thirty){spent30+=cost;chars30+=chars;}
+          if(when>=today){spentToday+=cost;charsToday+=chars;}
+        }
+        if(list.has_more) throw new Error('سجل الاستخدام فيه صفحات إضافية؛ لم نعرض أرقاماً غير مكتملة.');
+      }
+    } catch(e){usageError=String(e?.message||e).slice(0,160);}
+    return json(res,200,{
+      balanceUsd:balanceUsd.toFixed(6),
+      priceEstimatePer1000:PRICE_ESTIMATE_PER_1000,
+      estimatedRemainingCharacters:Math.floor((balanceUsd/PRICE_ESTIMATE_PER_1000)*1000),
+      spent730dUsd:usageError?null:spent730.toFixed(6),
+      spent30dUsd:usageError?null:spent30.toFixed(6),
+      spentTodayUsd:usageError?null:spentToday.toFixed(6),
+      used730dCharacters:usageError?null:chars730,
+      used30dCharacters:usageError?null:chars30,
+      usedTodayCharacters:usageError?null:charsToday,
+      usageError,usageNote:'الاستهلاك مُسجّل يومياً وقد يتأخر حتى ساعة؛ الرصيد يُحدّث بعد تسوية الطلب.',
+      updatedAt:new Date().toISOString()
+    });
+  }catch(e){
+    return json(res,502,{error:'تعذّر قراءة الحساب: '+String(e?.message||e).slice(0,220)});
+  }
+}
+
 async function generate(req, res) {
   if (generating) return json(res, 429, { error: 'يوجد طلب قيد التوليد. حاول بعد اكتماله.' });
   let payload;
   try { payload = await readJsonBody(req); } catch (e) { return json(res, 400, { error: e.message }); }
   const text = String(payload.text || '').trim();
   const voice = String(payload.voice || '');
+  const speed = Number(payload.speed ?? 1);
+  if (!Number.isFinite(speed) || speed < 0.75 || speed > 1) return json(res, 400, {error: 'سرعة الصوت يجب أن تكون بين 0.75 و1.00.'});
   if (!text || text.length > MAX_CHARS) return json(res, 400, { error: `اكتب مقطعاً من 1 إلى ${MAX_CHARS} حرف.` });
   if (!/^[\w-]{8,128}$/.test(voice)) return json(res, 400, { error: 'معرّف الصوت غير صحيح.' });
   if (payload.enhancePronunciation !== undefined && typeof payload.enhancePronunciation !== 'boolean') return json(res, 400, { error: 'إعداد النطق غير صحيح.' });
@@ -174,14 +278,21 @@ async function generate(req, res) {
     // Provider sends streaming WAV with placeholder sizes; finalize RIFF/data lengths.
     wav.writeUInt32LE(dataBytes + 36, 4);
     wav.writeUInt32LE(dataBytes, 40);
+    let finishedAudio=wav;
+    let speedApplied=speed===1;
+    if(speed<1) {
+      try { finishedAudio=await stretchWav(wav,speed);speedApplied=true; }
+      catch(e){console.warn('Sawtak speed adjustment unavailable; delivering original WAV:',String(e?.message||e));}
+    }
     res.writeHead(200, {
+      'X-Sawtak-Speed-Applied': speedApplied ? 'true' : 'false',
       'Content-Type': 'audio/wav',
       'Content-Disposition': `attachment; filename="sawtak_iraqi_${Date.now()}.wav"`,
-      'Content-Length': wav.length,
+      'Content-Length': finishedAudio.length,
       'Cache-Control': 'private, no-store',
       'X-Content-Type-Options': 'nosniff'
     });
-    res.end(wav);
+    res.end(finishedAudio);
   } catch (e) {
     // Never retry requests automatically: a failed stream could already be chargeable.
     json(res, 502, { error: String(e?.message || e).slice(0, 400) });
@@ -196,8 +307,9 @@ export async function handleSawtak(req, res, pathname) {
         passwordMeetsMinimum: APP_PASSWORD.length >= 12
       } });
   }
-  if (!['/api/sawtak/voices', '/api/sawtak/generate'].includes(pathname)) return json(res, 404, { error: 'المسار غير موجود.' });
+  if (!['/api/sawtak/voices', '/api/sawtak/generate', '/api/sawtak/account'].includes(pathname)) return json(res, 404, { error: 'المسار غير موجود.' });
   if (!gate(req, res)) return;
+  if (pathname === '/api/sawtak/account' && req.method === 'GET') return accountSummary(res);
   if (pathname === '/api/sawtak/voices' && req.method === 'GET') {
     try { return json(res, 200, { voices: await listVoices() }); }
     catch (e) { return json(res, 502, { error: String(e?.message || e).slice(0, 300) }); }
