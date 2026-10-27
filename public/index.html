@@ -18,9 +18,9 @@
       <div id="connection" class="connection">● جارِ الاتصال</div>
     </header>
     <section class="hero">
-      <div class="eyebrow">تطبيق ويب للموبايل والحاسبة <span>الإصدار 4.0</span></div>
+      <div class="eyebrow">تطبيق ويب للموبايل والحاسبة <span>الإصدار 3.0</span></div>
       <h1>من السكربت... <em>للصوت العراقي.</em></h1>
-      <p>بدون تثبيت برامج: اكتب نصك باللهجة العراقية، اختار باسل أو رنا أو نموذج Habibi العراقي، اضبط النبرة والسرعة، واستمع للملف وحمّله MP3 مباشرة.</p>
+      <p>بدون تثبيت برامج: اكتب نصك باللهجة العراقية، اختار باسل أو رنا، اضبط النبرة والسرعة، واستمع للملف وحمّله MP3 مباشرة.</p>
       <div class="hero-stats"><span>◈ صوت رجالي ونسائي</span><span>◈ تحميل MP3</span><span>◈ يشتغل من Chrome</span></div>
     </section>
     <main class="layout">
@@ -33,27 +33,20 @@
       </section>
       <aside class="panel settings">
         <div class="step">02 / الصوت</div><h2>إعدادات التسجيل</h2>
-        <label>اختار محرك التعليق الصوتي</label>
-        <div class="engine-grid" role="group" aria-label="محرك توليد الصوت">
-          <button class="engine-option active" type="button" data-engine="edge" aria-pressed="true">Edge-TTS <small>باسل / رنا</small></button>
-          <button class="engine-option" type="button" data-engine="habibi" aria-pressed="false">Habibi IRQ <small>النموذج العراقي المفتوح</small></button>
-        </div>
-        <div id="engine-note" class="engine-note">Edge-TTS عبر خدمة Microsoft.</div>
-        <div id="edge-voices"><label>اختار الصوت</label>
+        <div class="engine-note">المحرك: Edge-TTS باستخدام خدمة Microsoft عبر الإنترنت. لا يحتاج مفتاح API، لكنه ليس محركاً محلياً أو خدمة غير محدودة مضمونة.</div>
+        <label>اختار الصوت</label>
         <div class="voice-grid" role="group" aria-label="نوع الصوت">
           <button class="voice-option active" data-voice="ar-IQ-BasselNeural" aria-pressed="true" type="button"><span class="avatar">♂</span><strong>باسل</strong><small>صوت رجالي</small></button>
           <button class="voice-option" data-voice="ar-IQ-RanaNeural" aria-pressed="false" type="button"><span class="avatar">♀</span><strong>رنا</strong><small>صوت نسائي</small></button>
         </div>
-        </div>
         <div class="range-head"><label for="speed">سرعة الكلام</label><output id="speed-value">1.00×</output></div>
         <input class="range" id="speed" type="range" min="0.7" max="1.3" step="0.05" value="1">
         <div class="range-labels"><span>بطيء</span><span>طبيعي</span><span>سريع</span></div>
-        <div id="pitch-controls"><div class="range-head"><label for="pitch">درجة النبرة</label><output id="pitch-value">0 Hz</output></div>
+        <div class="range-head"><label for="pitch">درجة النبرة</label><output id="pitch-value">0 Hz</output></div>
         <input class="range" id="pitch" type="range" min="-30" max="30" step="5" value="0">
         <div class="range-labels"><span>منخفضة</span><span>طبيعية</span><span>مرتفعة</span></div>
-        </div>
         <button id="generate" class="generate" type="button"><span>✦</span><span id="generate-label">توليد التعليق الصوتي</span></button>
-        <p id="terms" class="terms">حد أمان 4500 حرف بالمقطع. بدون حساب أو رصيد داخل التطبيق؛ الخدمة الخارجية قد تفرض حدوداً. يتم إرسال النص إلى خدمة Microsoft.</p>
+        <p class="terms">حد أمان 4500 حرف بالمقطع. بدون حساب أو رصيد داخل التطبيق؛ الخدمة الخارجية قد تفرض حدوداً. يتم إرسال النص إلى خدمة Microsoft.</p>
       </aside>
     </main>
     <section class="panel result" id="result" hidden aria-live="polite">
@@ -63,7 +56,7 @@
       <p class="result-hint">الملف ينزل عادةً في مجلد Downloads بالموبايل. ما ينحفظ الصوت على الخادم، فحمّله قبل إغلاق الصفحة.</p>
     </section>
     <p id="message" role="alert" hidden></p>
-    <footer>صَوْتَك <span>•</span> نسخة ويب سحابية v4 <span>•</span> تدعم أندرويد والحاسبة <span>•</span> مشروع غير تابع لمايكروسوفت</footer>
+    <footer>صَوْتَك <span>•</span> نسخة ويب سحابية <span>•</span> تدعم أندرويد والحاسبة <span>•</span> مشروع غير تابع لمايكروسوفت</footer>
   </div>
   <script src="/app.js"></script>
 </body>
